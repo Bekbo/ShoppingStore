@@ -1,7 +1,6 @@
 import datetime
 from datetime import timezone
 from django.contrib.auth.base_user import BaseUserManager
-from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 from .addresses import BASE_ADDRESSES
 from auth_.models import User, Seller
@@ -39,6 +38,10 @@ class Category(models.Model):
 
 
 class ProductManager(models.Manager):
+
+    def actual(self):
+        return self.get_queryset().filter(is_active=True, seller__is_active=True)
+
     def sort_by_category(self):
         return self.get_queryset().order_by('category')
 
@@ -50,12 +53,13 @@ class Product(models.Model):
     price = models.IntegerField(default=0, blank=False)
     amount = models.IntegerField(default=-1)
     location = models.PositiveSmallIntegerField(choices=BASE_ADDRESSES)
-    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='sel_products')
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='sel_products', default=3)
+    is_active = models.BooleanField(default=True)
 
     objects = ProductManager()
 
     def __str__(self):
-        return f"{self.name}"
+        return f"Product: {self.name}"
 
     class Meta:
         verbose_name = 'Product'
@@ -114,7 +118,3 @@ class Comment(models.Model):
         verbose_name = 'Comment'
         verbose_name_plural = 'Comments'
         ordering = ['published']
-
-
-
-

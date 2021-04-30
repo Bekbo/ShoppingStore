@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from api.models import Product
 from .models import User, Seller, Profile
+from django.core.validators import validate_email
 
 
 class ProductSimplestSerializer(serializers.ModelSerializer):
@@ -28,25 +29,44 @@ class UserSimplestSerializer(serializers.ModelSerializer):
 
 
 class SellerSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Seller
+        fields = ['shopName', 'location', 'shopEmail', 'is_active']
+
+
+class SellerSerializer(UserSerializer):
     user = UserSimpleSerializer()
 
     class Meta:
         model = Seller
-        fields = ['shopName', 'location', 'user']
-
-
-class SellerSerializer(UserSerializer):
-    user = UserSerializer()
-
-    class Meta:
-        model = Seller
-        fields = ['user', 'shopName', 'location', 'shopEmail']
+        fields = ['user', 'shopName', 'location', 'shopEmail', 'is_active']
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'password', 'email', 'age', 'gender', 'cardDetails', 'location')
+
+    def validate(self, attrs):
+        password = attrs['password']
+        if not attrs.__contains__('email'):
+            raise serializers.ValidationError('email is required')
+        email = attrs['email']
+        if not attrs.__contains__('location'):
+            raise serializers.ValidationError('location is required')
+        if not attrs.__contains__('age'):
+            raise serializers.ValidationError('age is required')
+        if not attrs.__contains__('gender'):
+            raise serializers.ValidationError('gender is required')
+        if not attrs.__contains__('cardDetails'):
+            raise serializers.ValidationError('cardDetails is required')
+        if len(password) < 8:
+            raise serializers.ValidationError('Password is too short, minimum length is 8')
+        try:
+            validate_email(email)
+        except serializers.ValidationError as e:
+            raise serializers.ValidationError(f"bad email, details: {e}")
+        return attrs
 
     def create(self, validated_data):
         user = User.users.create_user(username=validated_data['username'],
@@ -61,30 +81,32 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
 
 class RegisterSellerSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
-
     class Meta:
         model = Seller
-        fields = ('user', 'shopEmail', 'shopName')
+        fields = ('shopEmail', 'shopName', 'location')
+
+    def validate(self, attrs):
+        return attrs
 
     def create(self, validated_data):
-        user = User.users.create_user(username=validated_data['user'].get('username'),
-                                      password=validated_data['user'].get('password'),
-                                      email=validated_data['user'].get('email'),
-                                      location=validated_data['user'].get('location'),
-                                      age=validated_data['user'].get('age'),
-                                      gender=validated_data['user'].get('gender'),
-                                      cardDetails=validated_data['user'].get('cardDetails'),
-                                      is_seller=validated_data['user'].get('is_seller'),
-                                      shopName=validated_data['shopName'],
-                                      shopEmail=validated_data['shopEmail'])
-        return user
+        user_obj = self.context['request'].user
+        seller = Seller.objects.create(user=user_obj,
+                                       shopName=validated_data['shopName'],
+                                       shopEmail=validated_data['shopEmail'],
+                                       location=validated_data['location'])
+        user_obj.is_seller = True
+        user_obj.save()
+        return seller
+
+    def __delete__(self, instance):
+        print(instance)
 
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSimplestSerializer(read_only=True)
-    products = ProductSimplestSerializer(read_only=True)
+    products = ProductSimplestSerializer(read_only=True, many=True)
+    img = serializers.ImageField
 
     class Meta:
         model = Profile
-        fields = ['user', 'products']
+        fields = ['user', 'products', 'img']

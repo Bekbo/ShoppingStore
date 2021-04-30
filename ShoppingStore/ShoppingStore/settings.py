@@ -1,5 +1,5 @@
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_filters',
     'rest_framework_jwt',
     'rest_framework.authtoken',
     'rest_framework',
@@ -127,6 +128,13 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         # 'rest_framework.permissions.IsAdminUser',
     ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
+    'DEFAULT_PAGINATION_CLASS': (
+        'rest_framework.pagination.PageNumberPagination',
+    ),
+    'PAGE_SIZE': '5',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
@@ -167,3 +175,48 @@ JWT_AUTH = {
     'JWT_AUTH_HEADER_PREFIX': 'JWT',
     'JWT_AUTH_COOKIE': None,
 }
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s -- %(levelname)s: -- %(message)s',
+        },
+        'full': {
+            'format': '%(name)s -- %(asctime)s -- %(levelname)s: -- %(message)s'
+        }
+    },
+    'handlers': {
+        'auth_file_handler': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': 'auth_/logs/authorization.log',
+            'formatter': 'verbose'
+        },
+        'api_file_handler': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'api/logs/api.log',
+            'formatter': 'verbose'
+        },
+        'console_handler': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'full'
+        }
+    },
+    'loggers': {
+        'authorization': {
+            'handlers': ['auth_file_handler', 'console_handler'],
+            'level': 'DEBUG',
+        },
+        'api': {
+            'handlers': ['api_file_handler', 'console_handler'],
+            'level': 'DEBUG',
+        }
+    },
+}
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
