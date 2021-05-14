@@ -31,4 +31,7 @@ Diagram
 ![alt text](https://github.com/Bekbo/ShoppingStore/blob/main/ShoppingStore/ClassDiagram.png)
 
 ##### Hint: Install postman requests on your local workspace
-##### pip install -r requirements.txt
+
+```shell script
+pip install -r requirements.txt
+```
