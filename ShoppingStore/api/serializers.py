@@ -1,10 +1,26 @@
 from datetime import datetime
-
 from rest_framework import serializers
-
-from auth_.models import Seller
+from auth_.models import Seller, User
 from auth_.serializers import SellerSerializer, UserSimpleSerializer, SellerSimpleSerializer, UserSimplestSerializer
 from .models import Product, ShippingAddress, Category, Comment, Order
+
+
+class CategorySerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=False)
+    name = serializers.CharField(max_length=100)
+
+    def validate(self, attrs):
+        if not attrs.__contains__('name'):
+            raise serializers.ValidationError('Name field is required')
+        try:
+            Category.objects.get(name=attrs['name'])
+        except Category.DoesNotExist:
+            return attrs
+        raise serializers.ValidationError('Category with that name already exists')
+        # return attrs
+
+    def create(self, validated_data):
+        return Category.objects.create(**validated_data)
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -28,7 +44,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['name', 'category', 'description', 'price', 'amount', 'location', 'seller', 'is_active']
+        fields = ['id', 'name', 'category', 'description', 'price', 'amount', 'location', 'seller', 'is_active']
 
 
 class OrderProductSerializer(serializers.ModelSerializer):
@@ -46,12 +62,23 @@ class ProductSimpleSerializer(OrderProductSerializer):
 
 
 class ProductUpdateSerializer(serializers.ModelSerializer):
-    location = serializers.IntegerField()
+    description = serializers.CharField(required=False)
+    location = serializers.IntegerField(required=False)
     is_active = serializers.BooleanField(required=False)
+    price = serializers.IntegerField(required=False)
+    amount = serializers.IntegerField(required=False)
 
     class Meta:
         model = Product
         fields = ['description', 'price', 'amount', 'location', 'is_active']
+
+    def validate(self, attrs):
+        if not attrs.__contains__('description') and not attrs.__contains__('price') and\
+                not attrs.__contains__('amount') and not attrs.__contains__('location') \
+                and not attrs.__contains__('is_active'):
+            raise serializers.ValidationError('No data to update')
+
+        return attrs
 
     def update(self, instance, validated_data):
         instance.description = validated_data.get('description', instance.description)
@@ -75,6 +102,21 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         model = Product
         fields = ['name', 'category', 'description', 'price', 'amount', 'location', 'seller']
 
+    def validate(self, attrs):
+        if not attrs.__contains__('name'):
+            raise serializers.ValidationError('Name is required')
+        if not attrs.__contains__('category'):
+            raise serializers.ValidationError('Category is required')
+        if not attrs.__contains__('description'):
+            raise serializers.ValidationError('Description is required')
+        if not attrs.__contains__('price'):
+            raise serializers.ValidationError('Price is required')
+        if not attrs.__contains__('amount'):
+            raise serializers.ValidationError('Amount is required')
+        if not attrs.__contains__('location'):
+            raise serializers.ValidationError('Location is required')
+        return attrs
+
     def create(self, validated_data):
         return Product.objects.create(
             name=validated_data['name'],
@@ -85,13 +127,6 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             location=validated_data['location'],
             seller=self.context['request'].user.seller
         )
-
-
-class CategorySerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=100)
-
-    def create(self, validated_data):
-        return Category.objects.create(**validated_data)
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -115,8 +150,17 @@ class CommentCreateSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ['user', 'product', 'published', 'title', 'body']
 
+    def validate(self, attrs):
+        if not attrs.__contains__('title'):
+            raise serializers.ValidationError('Title is required')
+        title = attrs['title']
+        if not attrs.__contains__('body'):
+            raise serializers.ValidationError('Body of comment is required')
+        if len(title) < 3:
+            raise serializers.ValidationError('Title is too short')
+        return attrs
+
     def create(self, validated_data):
-        print(validated_data)
         comment = Comment.objects.create(
             user=self.context['request'].user,
             product=self.context['product'],
@@ -136,11 +180,36 @@ class ShippingAddressSerializer(serializers.Serializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    seller = SellerSimpleSerializer(read_only=True)
-    customer = UserSimplestSerializer(read_only=True)
     shipping_address = ShippingAddressSerializer(read_only=True)
     products = OrderProductSerializer(many=True, read_only=True)
 
     class Meta:
         model = Order
-        fields = ['seller', 'total', 'customer', 'products', 'date_created', 'shipping_address']
+        fields = ['id', 'products', 'total', 'date_created', 'shipping_address']
+
+
+class OrderCreateSerializer(serializers.ModelSerializer):
+    customer = UserSimplestSerializer(read_only=True)
+    shipping_address = ShippingAddressSerializer(read_only=True)
+    products = ProductSimpleSerializer(read_only=True, many=True)
+    total = serializers.IntegerField()
+
+    class Meta:
+        model = Order
+        fields = ['customer', 'products', 'total', 'shipping_address']
+
+    def validate(self, attrs):
+        return attrs
+
+    def create(self, validated_data):
+        customer = validated_data['customer']
+        add = validated_data['shipping_address']
+        products = validated_data['products']
+        total = validated_data['total']
+        order = Order.orders.create(
+            customer=customer,
+            products=products,
+            address=add,
+            total=total)
+        order.products.set(products)
+        return order

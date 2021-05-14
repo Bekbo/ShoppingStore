@@ -10,3 +10,11 @@ def user_created(sender, instance, created, **kwargs):
     if created:
         logger.info(f"User : {instance.username} created")
         Profile.objects.create(user=instance)
+
+
+@receiver(pre_save, sender=Profile)
+def img_changed(sender, instance, **kwargs):
+    if not instance.img:
+        logger.info(f"User {instance.user.username} removed profile photo")
+    else:
+        logger.info(f"User {instance.user.username} set profile photo")

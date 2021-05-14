@@ -4,22 +4,16 @@ from .models import User, Seller, Profile
 from django.core.validators import validate_email
 
 
+class CategorySerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=100)
+
+
 class ProductSimplestSerializer(serializers.ModelSerializer):
+    category = CategorySerializer()
+
     class Meta:
         model = Product
         fields = ['id', 'name', 'category', 'price']
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['username', 'password', 'age', 'gender', 'cardDetails', 'location', 'is_seller']
-
-
-class UserSimpleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['username', 'location', 'is_seller']
 
 
 class UserSimplestSerializer(serializers.ModelSerializer):
@@ -28,18 +22,30 @@ class UserSimplestSerializer(serializers.ModelSerializer):
         fields = ['username']
 
 
+class UserSimpleSerializer(UserSimplestSerializer):
+    class Meta:
+        model = User
+        fields = UserSimplestSerializer.Meta.fields + ['location', 'is_seller']
+
+
+class UserSerializer(UserSimpleSerializer):
+    class Meta:
+        model = User
+        fields = UserSimpleSerializer.Meta.fields + ['age', 'gender']
+
+
 class SellerSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Seller
         fields = ['shopName', 'location', 'shopEmail', 'is_active']
 
 
-class SellerSerializer(UserSerializer):
+class SellerSerializer(SellerSimpleSerializer):
     user = UserSimpleSerializer()
 
     class Meta:
         model = Seller
-        fields = ['user', 'shopName', 'location', 'shopEmail', 'is_active']
+        fields = SellerSimpleSerializer.Meta.fields + ['user']
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
@@ -86,6 +92,20 @@ class RegisterSellerSerializer(serializers.ModelSerializer):
         fields = ('shopEmail', 'shopName', 'location')
 
     def validate(self, attrs):
+        if not attrs.__contains__('shopName'):
+            raise serializers.ValidationError('email is required')
+        shopName = attrs['shopName']
+        if not attrs.__contains__('shopEmail'):
+            raise serializers.ValidationError('location is required')
+        shopEmail = attrs['shopEmail']
+        if not attrs.__contains__('location'):
+            raise serializers.ValidationError('age is required')
+        if len(shopName) < 4:
+            raise serializers.ValidationError('Shop Name is too short, minimum length is 8')
+        try:
+            validate_email(shopEmail)
+        except serializers.ValidationError as e:
+            raise serializers.ValidationError(f"Bad email, details: {e}")
         return attrs
 
     def create(self, validated_data):
@@ -98,15 +118,24 @@ class RegisterSellerSerializer(serializers.ModelSerializer):
         user_obj.save()
         return seller
 
-    def __delete__(self, instance):
-        print(instance)
-
 
 class ProfileSerializer(serializers.ModelSerializer):
-    user = UserSimplestSerializer(read_only=True)
     products = ProductSimplestSerializer(read_only=True, many=True)
     img = serializers.ImageField
 
     class Meta:
         model = Profile
-        fields = ['user', 'products', 'img']
+        fields = ['products', 'img']
+
+
+class EditProfile(serializers.ModelSerializer):
+    img = serializers.ImageField
+
+    class Meta:
+        model = Profile
+        fields = ['img']
+
+    def update(self, instance, validated_data):
+        instance.img = validated_data.get('image', instance.img)
+        instance.save()
+        return instance

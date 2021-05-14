@@ -25,3 +25,26 @@
 2021-04-30 20:16:45,280 -- WARNING: -- User : bek already seller
 2021-04-30 20:17:45,305 -- WARNING: -- User : bek already seller
 2021-04-30 21:04:00,272 -- WARNING: -- User : bek already seller
+2021-05-05 18:33:03,596 -- WARNING: -- User : bek already seller
+2021-05-05 18:34:49,881 -- ERROR: -- UNIQUE constraint failed: auth__seller.user_id
+2021-05-05 18:36:39,592 -- ERROR: -- UNIQUE constraint failed: auth__seller.user_id
+2021-05-05 18:52:53,101 -- WARNING: -- User : bek2 already seller
+2021-05-05 19:04:14,411 -- WARNING: -- User : bek2 already seller
+2021-05-05 19:04:18,812 -- WARNING: -- User : bek2 already seller
+2021-05-05 19:04:24,745 -- WARNING: -- User : bek2 already seller
+2021-05-05 19:07:17,643 -- WARNING: -- User : bek2 already seller
+2021-05-05 19:07:29,747 -- WARNING: -- User : bek2 already seller
+2021-05-05 19:12:58,600 -- ERROR: -- {'username': [ErrorDetail(string='This field is required.', code='required')], 'password': [ErrorDetail(string='This field is required.', code='required')]} error
+2021-05-05 19:13:50,021 -- ERROR: -- {'non_field_errors': [ErrorDetail(string='email is required', code='invalid')]} error
+2021-05-05 19:14:08,556 -- ERROR: -- {'non_field_errors': [ErrorDetail(string='location is required', code='invalid')]} error
+2021-05-05 19:14:23,367 -- ERROR: -- {'non_field_errors': [ErrorDetail(string='age is required', code='invalid')]} error
+2021-05-05 19:15:00,174 -- ERROR: -- {'non_field_errors': [ErrorDetail(string='gender is required', code='invalid')]} error
+2021-05-05 19:15:18,618 -- ERROR: -- {'non_field_errors': [ErrorDetail(string='cardDetails is required', code='invalid')]} error
+2021-05-05 19:15:36,817 -- ERROR: -- {'non_field_errors': [ErrorDetail(string='Password is too short, minimum length is 8', code='invalid')]} error
+2021-05-05 19:18:09,664 -- ERROR: -- __init__() got an unexpected keyword argument 'status' error
+2021-05-05 19:18:17,414 -- ERROR: -- {'username': [ErrorDetail(string='A user with that username already exists.', code='unique')]} error
+2021-05-05 19:18:31,837 -- ERROR: -- __init__() takes 1 positional argument but 2 were given error
+2021-05-05 19:20:38,227 -- ERROR: -- __init__() takes 1 positional argument but 2 were given error
+2021-05-05 20:16:32,417 -- ERROR: -- type object 'User' has no attribute 'users' error
+2021-05-05 20:17:22,863 -- ERROR: -- {'username': [ErrorDetail(string='A user with that username already exists.', code='unique')]} error
+2021-05-13 20:23:34,744 -- ERROR: -- {'username': [ErrorDetail(string='A user with that username already exists.', code='unique')]} error

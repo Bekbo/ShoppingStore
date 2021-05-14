@@ -69,11 +69,10 @@ class User(AbstractUser):
 
     def remove_seller(self):
         self.seller.make_inactive()
-        self.is_seller = False
         self.save()
 
     def __str__(self):
-        return f"User : {self.username}"
+        return f"{self.username}"
 
 
 class Seller(models.Model):
@@ -84,18 +83,18 @@ class Seller(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"Seller : {self.shopName}"
+        return f"{self.shopName}"
 
     def make_inactive(self):
-        if self.user.is_seller:
-            print(self.user.is_seller)
-            self.is_active = False
-            self.save()
+        # if self.user.is_seller:
+        #     print(self.user.is_seller)
+        self.is_active = False
+        self.save()
 
     def make_active(self):
-        if self.user.is_seller:
-            self.is_active = True
-            self.save()
+        # if self.user.is_seller:
+        self.is_active = True
+        self.save()
 
     class Meta:
         verbose_name = 'Seller'
@@ -107,7 +106,7 @@ def wrapper(instance, filename):
     ext = filename.split('.')[-1]
     if instance.pk:
         filename = '{}.{}'.format(instance.user.username, ext)
-    return os.path.join('media/profiles/', filename)
+    return os.path.join('profiles/', filename)
 
 
 class Profile(models.Model):
@@ -116,9 +115,7 @@ class Profile(models.Model):
     img = models.ImageField(upload_to=wrapper, null=True, blank=True)
 
     def __str__(self):
-        return f"Profile: {self.user.username}"
-
-
+        return f"{self.user.username}"
 
     class Meta:
         verbose_name = 'Profile'

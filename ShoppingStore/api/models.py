@@ -11,7 +11,7 @@ class BaseAddress(models.Model):
     region = models.PositiveSmallIntegerField(choices=BASE_ADDRESSES, unique=True)
 
     def __str__(self):
-        return f"{self.region}"
+        return f"{BASE_ADDRESSES[self.region]}"
 
 
 class ShippingAddress(BaseAddress):
@@ -22,14 +22,14 @@ class ShippingAddress(BaseAddress):
         verbose_name_plural = 'ShippingAddresses'
 
     def __str__(self):
-        return f"{self.region}:{self.address}"
+        return f"{BASE_ADDRESSES[self.region]} : {self.address}"
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
-        return f"Category:{self.name}"
+        return f"{self.name}"
 
     class Meta:
         verbose_name = 'Category'
@@ -47,19 +47,19 @@ class ProductManager(models.Manager):
 
 
 class Product(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='cat_products')
     description = models.CharField(max_length=200)
     price = models.IntegerField(default=0, blank=False)
     amount = models.IntegerField(default=-1)
     location = models.PositiveSmallIntegerField(choices=BASE_ADDRESSES)
-    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='sel_products', default=3)
+    seller = models.ForeignKey(Seller, on_delete=models.DO_NOTHING, related_name='sel_products', default=3)
     is_active = models.BooleanField(default=True)
 
     objects = ProductManager()
 
     def __str__(self):
-        return f"Product: {self.name}"
+        return f"{self.name}"
 
     class Meta:
         verbose_name = 'Product'
@@ -68,9 +68,12 @@ class Product(models.Model):
 
 
 class OrdersManager(models.Manager):
-    def create(self, seller, customer, total=0, del_address=None, *args, **kwargs):
-        if seller and customer and del_address:
-            order = self.model(seller=seller, customer=customer, total=total, shipping_address=del_address)
+
+    def create(self, customer, address, total, *args, **kwargs):
+        if customer and address:
+            order = self.model(customer=customer, shipping_address=address,
+                               total=total)
+            order.save()
             return order
         else:
             raise ValueError('Some fields are not full')
@@ -86,17 +89,16 @@ class OrdersManager(models.Manager):
 
 
 class Order(models.Model):
-    seller = models.ForeignKey(Seller, on_delete=models.CASCADE, related_name='seller_order')
-    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='customer_order')
+    customer = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='customer_order')
     total = models.PositiveIntegerField(blank=False)
     products = models.ManyToManyField(Product, related_name='order_products', blank=True)
-    date_created = models.DateTimeField(blank=True, default=datetime.datetime.now())
+    date_created = models.DateTimeField(blank=True, auto_now=True)
     shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.CASCADE, related_name='order_address')
 
     orders = OrdersManager()
 
     def __str__(self):
-        return f"Order: {self.pk}"
+        return f"Order : {self.pk}"
 
     class Meta:
         verbose_name = 'Order'
@@ -105,14 +107,14 @@ class Order(models.Model):
 
 
 class Comment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='comments')
     title = models.CharField(max_length=100)
     body = models.TextField()
     published = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return f"Comment: {self.title}"
+        return f"{self.user.username} : {self.title}"
 
     class Meta:
         verbose_name = 'Comment'
