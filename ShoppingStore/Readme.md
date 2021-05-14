@@ -7,7 +7,7 @@ so there will be sellers and simple users. Sellers are users/shop owners that po
 So, the plan is to make an online shop union over Kazakhstan shops. 
 Products are divided by categories and locations, though so users can get the product they want on their location.
 
-##Finally
+## Finally
 
 1. All shops in KZ
 2. One Platform
@@ -26,5 +26,5 @@ Products are divided by categories and locations, though so users can get the pr
 - [x] Postman requests (by folders and local environment)
 - [x] Github Repo
 
-#####Hint: Install postman requests on your local workspace
-![alt text](https://github.com/Bekbo/ShoppingStore/blob/master/ClassDiagram.png)
+##### Hint: Install postman requests on your local workspace
+![alt text](https://github.com/Bekbo/ShoppingStore/blob/main/ClassDiagram.png)
