@@ -27,4 +27,4 @@ Products are divided by categories and locations, though so users can get the pr
 - [x] Github Repo
 
 ##### Hint: Install postman requests on your local workspace
-![alt text](https://github.com/Bekbo/ShoppingStore/blob/main/ClassDiagram.png)
+![alt text](https://github.com/Bekbo/ShoppingStore/blob/main/ShoppingStore/ClassDiagram.png)
