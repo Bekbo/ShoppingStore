@@ -26,5 +26,9 @@ Products are divided by categories and locations, though so users can get the pr
 - [x] Postman requests (by folders and local environment)
 - [x] Github Repo
 
-##### Hint: Install postman requests on your local workspace
+Diagram
+
 ![alt text](https://github.com/Bekbo/ShoppingStore/blob/main/ShoppingStore/ClassDiagram.png)
+
+##### Hint: Install postman requests on your local workspace
+##### pip install -r requirements.txt
