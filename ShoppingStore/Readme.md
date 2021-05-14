@@ -32,6 +32,8 @@ Diagram
 
 ##### Hint: Install postman requests on your local workspace
 
+##### Install requirements
+
 ```shell script
 pip install -r requirements.txt
 ```
